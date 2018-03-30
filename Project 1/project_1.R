@@ -29,7 +29,43 @@ p2
 m1 = lm(log.returns ~ time, data = exchange_data)
 plot(m1)
 
+
+
+
 acf(log_returns)
+#########################
+##### Problem 2 #########
+#########################
+#Osäker på hur mycket vi ska skriva själva och hur mycket vi får använda rakt av. 
+sampMean<-function(data){
+  output<-sum(data)/length(data)
+}
+sampVar<-function(data){
+  n<-length(data)
+  output<-(1/(n-1))*sum((data-sampMean(data))^2)
+}
+
+sampAutoCorr<-function(data,lag){
+  n<-length(data)
+  mu<-sampMean(data)
+  stDv<-sqrt(sampVar(data))
+  for(t in 1:(n-lag) ){
+    
+  }
+  
+}
+
+ljungBox<-function(data,lagMax,alpha){
+  n<-length(data)
+  rhoVec<-acf(x = data,lag.max = lagMax,type = "correlation",plot=F)$acf[2:]
+  testStat<-0
+  for(i in seq(1,lagMax)){
+    testStat<-testStat+(rhoVec[i]^2/(n-i))
+  }
+  output<-testStat*n*(n+2)
+}
+#värt att notera är att koden inte kör
+
 
 #########################
 ##### Problem 3 #########
