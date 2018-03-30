@@ -1,4 +1,6 @@
+install.packages('R.matlab')
 require('R.matlab')
+
 data <- readMat('exchangerate.mat')
 
 data <- data$data
@@ -45,24 +47,31 @@ sampVar<-function(data){
   output<-(1/(n-1))*sum((data-sampMean(data))^2)
 }
 
-sampAutoCorr<-function(data,lag){
+sampAutoCov<-function(data,lag){
   n<-length(data)
   mu<-sampMean(data)
   stDv<-sqrt(sampVar(data))
+  lag<-abs(lag)
+  output<-0
   for(t in 1:(n-lag) ){
-    
+    output<-output+(data[t+lag]-mu)*(data[t]-mu)   
   }
-  
+  output<-output/n
 }
+
+sampAutoCorr<-function(data,lag){
+  output<-sampAutoCov(data,lag)/sampAutoCov(data,0)
+}
+
 
 ljungBox<-function(data,lagMax,alpha){
   n<-length(data)
-  rhoVec<-acf(x = data,lag.max = lagMax,type = "correlation",plot=F)$acf[2:]
   testStat<-0
-  for(i in seq(1,lagMax)){
-    testStat<-testStat+(rhoVec[i]^2/(n-i))
+  lagMax<-abs(lagMax) #unsure of this, but needed for summation. 
+  for(j in 1:lagMax){
+    testStat<-testStat+sampAutoCorr(data,j)^2/(n-j)
   }
-  output<-testStat*n*(n+2)
+  testStat<-testStat*n*(n+2)
 }
 #värt att notera är att koden inte kör
 
