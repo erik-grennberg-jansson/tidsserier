@@ -1,4 +1,38 @@
 require('R.matlab')
+###################################################################
+###################### Functions ##################################
+###################################################################
+
+
+my_mean <- function(x) {return(sum(x)/length(x))}
+
+my_acf <- function(x, max.lag = 1){
+  xbar <- my_mean(x)
+  num_obs <- length(x)
+  
+  x_shift <- x-xbar
+  gamma <- rep(0,max.lag+1)
+  
+  for(i in 0:max.lag){
+    gamma[i+1] <- (1/num_obs) * sum(x_shift[(i+1):num_obs]*x_shift[1:(num_obs-i)])
+  }
+  return(gamma)
+}
+
+my_acf_matrix <- function(gamma){
+  max.lag <- length(gamma) - 1
+  Gamma = matrix(rep(0,(max.lag+1)^2), max.lag + 1, max.lag+1)
+  
+  for(i in 1:(max.lag+1)){
+    for(j in i:(max.lag+1)) {
+      Gamma[i,j] = gamma[(j-i)+1]
+      Gamma[j,i] = gamma[(j-i)+1]
+    }
+  }
+  return(Gamma)
+}
+###################################################################
+
 data <- readMat('exchangerate.mat')
 
 data <- data$data
@@ -38,18 +72,12 @@ acf(log_returns)
 train_data = exchange_data[1:102,]
 test_data = exchange_data[103:204,]
 
-max_lag = 19
-train_acf = acf(train_data$log.returns, type = 'covariance', plot = F, lag.max = max_lag) ##!##
+max_lag = 20
+train_acf = my_acf(train_data$log.returns, max.lag= max_lag) ##!##
 
 plot(train_acf)
 
-Gamma = matrix(rep(0,(max_lag+1)^2), max_lag + 1, max_lag+1)
-for( i in seq(1,max_lag+1)) {
-  for(j in seq(i,max_lag+1)) {
-    Gamma[i,j] = train_acf$acf[(j-i)+1]
-    Gamma[j,i] = train_acf$acf[(j-i)+1]
-  }
-}
+Gamma = my_acf_matrix(train_acf)
 
 
 qqnorm(exchange_data$log.returns)
