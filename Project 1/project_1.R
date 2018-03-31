@@ -90,6 +90,18 @@ acfPlotter<-function(data,lagMax,shouldPlot=TRUE,plotName=""){
   }
 }
 
+#### Now do actual task. 
+
+alpha=0.05
+lag_max=20
+acfPlotter(intr_value,lag_max)
+acfPlotter(abs_returns,lag_max)
+acfPlotter(log_returns,lag_max)
+ljungBox(intr_value,lagMax,alpha) #vad är kutym att man säger att p-värdet är mindre än? 
+ljungBox(abs_returns,lagMax,alpha)
+ljungBox(log_returns,lagMax,alpha)
+
+
 #########################
 ##### Problem 3 #########
 #########################
@@ -110,11 +122,15 @@ for( i in seq(1,max_lag+1)) {
   }
 }
 
-
+#########################
+##### Problem 4 #########
+#########################
 qqnorm(exchange_data$log.returns)
 qqline(exchange_data$log.returns)
 
 X = rnorm(204)
 
 #To do: abs(log.return, Box Ljung)
+ljungBox(abs(log_returns),lagMax,alpha)
+acfPlotter(abs(log_returns),lagMax)
 
