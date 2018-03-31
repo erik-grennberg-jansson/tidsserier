@@ -72,6 +72,10 @@ ljungBox<-function(data,lagMax,alpha){
     testStat<-testStat+sampAutoCorr(data,j)^2/(n-j)
   }
   testStat<-testStat*n*(n+2)
+  pval<-pchisq(testStat,df=lagMax,lower.tail = FALSE)
+  res<-testStat>qchisq(1-alpha,df=lagMax)
+  output<-data.frame(testStat,pval,res)
+  print(output)
 }
 #värt att notera är att koden inte kör
 
