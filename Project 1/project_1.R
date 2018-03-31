@@ -77,8 +77,18 @@ ljungBox<-function(data,lagMax,alpha){
   output<-data.frame(testStat,pval,res)
   print(output)
 }
-#värt att notera är att koden inte kör
-
+acfPlotter<-function(data,lagMax,shouldPlot=TRUE,plotName=""){
+  lag<-seq(0,lagMax)
+  subFunc<-function(lag){
+    output<-sampAutoCorr(data,lag)
+  }
+  acf<-sapply(lag,subFunc)
+  if(shouldPlot){
+    toPlotDf<-data.frame(lag,acf)
+    q<-ggplot(data=toPlotDf,aes(x=lag,y=acf))+geom_hline(aes(yintercept=0))+geom_segment(aes(xend=lag,yend=0))+ggtitle(plotName)
+    q
+  }
+}
 
 #########################
 ##### Problem 3 #########
