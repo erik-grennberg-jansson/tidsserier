@@ -1,6 +1,15 @@
+
+#Install required packages
 install.packages('R.matlab')
-require('R.matlab')
-<<<<<<< HEAD
+install.package('ggplot2')
+install.packages('Matrix')
+
+#Load required packages
+library('R.matlab')
+library('gridExtra')
+library('matrix')
+
+
 ###################################################################
 ###################### Functions ##################################
 ###################################################################
@@ -33,9 +42,9 @@ my_acf_matrix <- function(gamma){
   }
   return(Gamma)
 }
+
+
 ###################################################################
-=======
->>>>>>> 2b3cf9f2c79a48819e540aa5ee3e66c73f2ea07c
 
 data <- readMat('exchangerate.mat')
 
@@ -142,16 +151,99 @@ ljungBox(log_returns,lagMax,alpha)
 ##### Problem 3 #########
 #########################
 
-train_data = exchange_data[1:102,]
-test_data = exchange_data[103:204,]
+#Partions the series into a training data set, and a test set.
+num_samples = nrow(exchange_data)
+num_train_samples = 120
+num_test_samples = num_samples - num_train_samples
+train_data = exchange_data[1:num_train_samples,]
+test_data = exchange_data[(num_train_samples+1):num_samples,]
 
-max_lag = 20
-train_acf = my_acf(train_data$log.returns, max.lag= max_lag) ##!##
+#Extracts the last [num_predictors] train_data points and store them in a row matrix
+num_predictors = 20
+predictors = (train_data$log.returns)[(num_train_samples-num_predictors+1):num_train_samples]
+predictors = t(matrix(predictors))
 
-plot(train_acf)
+#Computes the acf, and imputes the values corresponding to lag greater or equal to [num_train_samples] by zero.   
+train_acf = my_acf(train_data$log.returns, max.lag = num_train_samples-1)
+train_acf = c(train_acf, rep(0, 30))
 
-Gamma = my_acf_matrix(train_acf)
+Gamma = my_acf_matrix(train_acf[1:num_predictors])
 
+coefficients <- matrix(rep(0,num_predictors*num_test_samples), num_predictors, num_test_samples) #Allocate memory for
+                                                                                                 #coefficents
+
+LU = lu(Gamma)  #Since matrix of the linear system that is to be solved in each iteration is fix. It's appropriate
+                #LU-decompose the matrix in order to save computations.
+LU = expand(LU)
+L = LU$L
+U = LU$U
+P = LU$P
+
+for(h in 1:num_test_samples){
+  ii = seq(h+1, h+num_predictors)
+  b = train_acf[ii]
+  b1 = solve(P,b)
+  b2 = forwardsolve(L,b1)
+  b3 = backsolve(U, b2)
+  coefficients[,h] = as.matrix(b3)
+}
+
+predictions = predictors%*%coefficients
+
+df1 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, predictions[1,]), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
+
+#Plots the predicted log-return against time, superimposed with the predicted time series.
+p1 <- ggplot(data = df1, aes(x = time, y = log.returns, grouo = type)) + geom_line(aes(color = type))
+p1 <- p1 + xlab('Time') + ylab('Log-returns') + theme(legend.title=element_blank()) 
+
+#Distribution of the residuals of the naive estimates, and the predicted time series.
+df2 = data.frame(Error1 = test_data$log.returns, Error2 = (test_data$log.returns)-predictions[1,])
+
+p2 <- ggplot(data = df2) + geom_histogram(aes(Error1), bins = 15, fill = 'green', alpha = 0.5)
+p2 <- p2 + geom_histogram(aes(Error2), bins = 15, fill = 'blue', alpha = 0.5) + xlab('Errors') +ylab('')
+grid.arrange(p1, p2, nrow = 2)
+
+MSE1 = mean((test_data$log.returns)^2) #MSE of the "naive estimate"
+MSE2 = mean((test_data$log.returns-predictions[1,])^2) #MSE of the predictive model
+
+######################################################################
+###### Code chunk that finds "the optimal" number of predictors#######
+######################################################################
+
+max_num_predictors <- 50
+MSE_list = rep(0,max_num_predictors)
+for(num_predictors in 1:max_num_predictors){
+  predictors = (train_data$log.returns)[(num_train_samples-num_predictors+1):num_train_samples]
+  predictors = t(matrix(predictors))
+
+  Gamma = my_acf_matrix(train_acf[1:num_predictors])
+  coefficients <- matrix(rep(0,num_predictors*num_test_samples), num_predictors, num_test_samples)
+  
+  LU = lu(Gamma)
+  LU = expand(LU)
+  
+  L = LU$L
+  U = LU$U
+  P = LU$P
+  
+  for(h in 1:num_test_samples){
+    ii = seq(h+1, h+num_predictors)
+    b = train_acf[ii]
+    b1 = solve(P,b)
+    b2 = forwardsolve(L,b1)
+    b3 = backsolve(U, b2)
+    coefficients[,h] = as.matrix(b3)
+  }
+  
+  predictions = predictors%*%coefficients
+
+  MSE_list[num_predictors] = mean((test_data$log.returns-predictions[1,])^2)
+}
+
+df3 = data.frame(MSE = MSE_list, num.predictors = 1:50)
+p3 <- ggplot(data = df3, aes(x = num.predictors, y = MSE)) + geom_point() + geom_hline(aes(yintercept = MSE1))
+p3 <- p3 + xlab('Number of predictors')
+p3
 #########################
 ##### Problem 4 #########
 #########################
