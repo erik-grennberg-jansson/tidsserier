@@ -7,7 +7,7 @@ install.packages('Matrix')
 #Load required packages
 library('R.matlab')
 library('gridExtra')
-library('matrix')
+library('Matrix')
 
 
 ###################################################################
@@ -193,7 +193,7 @@ predictions = predictors%*%coefficients
 df1 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, predictions[1,]), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
 
 #Plots the predicted log-return against time, superimposed with the predicted time series.
-p1 <- ggplot(data = df1, aes(x = time, y = log.returns, grouo = type)) + geom_line(aes(color = type))
+p1 <- ggplot(data = df1, aes(x = time, y = log.returns, group = type)) + geom_line(aes(color = type))
 p1 <- p1 + xlab('Time') + ylab('Log-returns') + theme(legend.title=element_blank()) 
 
 #Distribution of the residuals of the naive estimates, and the predicted time series.
@@ -206,6 +206,33 @@ grid.arrange(p1, p2, nrow = 2)
 MSE1 = mean((test_data$log.returns)^2) #MSE of the "naive estimate"
 MSE2 = mean((test_data$log.returns-predictions[1,])^2) #MSE of the predictive model
 
+######################################################################
+############ Computes the predictions based on previous predictions###
+######################################################################
+
+updated_predictors <- predictors
+coeff1 <- coefficients[which(coefficients[,1] != 0),1]
+new_predictions <- rep(0,num_test_samples)
+
+for(i in 1:num_test_samples){
+  ith_prediction <- sum(coeff1*updated_predictors)
+  new_predictions[i] = ith_prediction
+  updated_predictors <- c(updated_predictors[2:num_predictors], ith_prediction)
+}
+
+df3 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, new_predictions), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
+
+#Plots the predicted log-return against time, superimposed with the predicted time series.
+p3 <- ggplot(data = df3, aes(x = time, y = log.returns, group = type)) + geom_line(aes(color = type))
+p3 <- p3 + xlab('Time') + ylab('Log-returns') + theme(legend.title=element_blank()) 
+
+df4 = data.frame(Error1 = test_data$log.returns, Error2 = (test_data$log.returns)-new_predictions)
+
+p4 <- ggplot(data = df4) + geom_histogram(aes(Error1), bins = 15, fill = 'green', alpha = 0.5)
+p4 <- p4 + geom_histogram(aes(Error2), bins = 15, fill = 'blue', alpha = 0.5) + xlab('Errors') +ylab('')
+grid.arrange(p3, p4, nrow = 2)
+
+MSE3 = mean((test_data$log.returns-new_predictions)^2)
 ######################################################################
 ###### Code chunk that finds "the optimal" number of predictors#######
 ######################################################################
@@ -240,10 +267,12 @@ for(num_predictors in 1:max_num_predictors){
   MSE_list[num_predictors] = mean((test_data$log.returns-predictions[1,])^2)
 }
 
-df3 = data.frame(MSE = MSE_list, num.predictors = 1:50)
-p3 <- ggplot(data = df3, aes(x = num.predictors, y = MSE)) + geom_point() + geom_hline(aes(yintercept = MSE1))
-p3 <- p3 + xlab('Number of predictors')
-p3
+df5 = data.frame(MSE = MSE_list, num.predictors = 1:50)
+p5 <- ggplot(data = df5, aes(x = num.predictors, y = MSE)) + geom_point() + geom_hline(aes(yintercept = MSE1))
+p5 <- p5 + xlab('Number of predictors')
+p5
+
+
 #########################
 ##### Problem 4 #########
 #########################
