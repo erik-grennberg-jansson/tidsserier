@@ -10,6 +10,7 @@ library('gridExtra')
 library('Matrix')
 library('ggplot2')
 
+setwd('C:/Users/Jacob Lindbäck/Documents/GitHub/tidsserier/Project 1')
 ###################################################################
 ###################### Functions ##################################
 ###################################################################
@@ -67,17 +68,17 @@ exchange_data = data.frame(time = seq(2,205), absolute.return = abs_returns, log
 plot(intr_value)
 
 library('ggplot2')
-p1 <- ggplot(data = exchange_data)+ geom_line(aes(x = time, y = abs_returns))
+p1 <- ggplot(data = exchange_data, aes(x = time, y = abs_returns))+ geom_line() + geom_smooth(method = 'loess', se = FALSE) + theme_bw() + xlab('Time') + ylab('Absolute Returns') 
+p1 <- p1 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
 p1
 
-p2 <- ggplot(data = exchange_data)+ geom_line(aes(x = time, y = log_returns))
-p2
+p2 <- ggplot(data = exchange_data, aes(x = time, y = log_returns))+ geom_line() + geom_smooth(method = 'loess',se = FALSE) + theme_bw() + xlab('Time') + ylab('Log-Returns')
+p2 <- p2 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
+p2 
 
-m1 = lm(log.returns ~ time, data = exchange_data)
-plot(m1)
-
-
-
+p3 <- ggplot(data = exchange_data, aes(x = time, y = intrinsic.value))+ geom_line() + geom_smooth(method = 'loess', se = FALSE)
+p3 <- p3 + geom_smooth(method = 'lm', se = FALSE, color = 'red')+ theme_bw() + xlab('Time') + ylab('Trade-Weighted Index') + theme(text = element_text(size=20))
+p3
 
 acf(log_returns)
 #########################
