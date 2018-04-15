@@ -8,7 +8,7 @@ install.packages('Matrix')
 library('R.matlab')
 library('gridExtra')
 library('Matrix')
-
+library('ggplot2')
 
 ###################################################################
 ###################### Functions ##################################
@@ -210,14 +210,14 @@ MSE2 = mean((test_data$log.returns-predictions[1,])^2) #MSE of the predictive mo
 ############ Computes the predictions based on previous predictions###
 ######################################################################
 
-updated_predictors <- predictors
-coeff1 <- coefficients[which(coefficients[,1] != 0),1]
+upd_predictors1 <- predictors[1,]
+coeff1 <- coefficients[(coefficients[,1] != 0),1]
 new_predictions <- rep(0,num_test_samples)
 
 for(i in 1:num_test_samples){
-  ith_prediction <- sum(coeff1*updated_predictors)
+  ith_prediction <- sum(coeff1*upd_predictors1)
   new_predictions[i] = ith_prediction
-  updated_predictors <- c(updated_predictors[2:num_predictors], ith_prediction)
+  upd_predictors1 <- c(upd_predictors1[2:num_predictors], ith_prediction)
 }
 
 df3 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, new_predictions), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
@@ -233,6 +233,40 @@ p4 <- p4 + geom_histogram(aes(Error2), bins = 15, fill = 'blue', alpha = 0.5) + 
 grid.arrange(p3, p4, nrow = 2)
 
 MSE3 = mean((test_data$log.returns-new_predictions)^2)
+
+######################################################################
+###### Computes the predictions based on previous predictions#########
+######################################################################
+upd_predictors2 <- predictors[1,]
+coeff1 <- coefficients[which(coefficients[,1] != 0),1]
+new_predictions2 <- rep(0,num_test_samples)
+
+for(i in 1:num_test_samples){
+  ith_prediction <- sum(coeff1*upd_predictors2)
+  new_predictions2[i] = ith_prediction
+  upd_predictors2 <- c(upd_predictors2[2:num_predictors], test_data$log.returns[i])
+}
+
+df5 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, new_predictions2), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
+
+#Plots the predicted log-return against time, superimposed with the predicted time series.
+p5 <- ggplot(data = df5, aes(x = time, y = log.returns, group = type)) + geom_line(aes(color = type))
+p5 <- p5 + xlab('Time') + ylab('Log-returns') + theme(legend.title=element_blank()) 
+
+df6 = data.frame(Error1 = test_data$log.returns, Error2 = (test_data$log.returns)-new_predictions2)
+
+p6 <- ggplot(data = df6) + geom_histogram(aes(Error1), bins = 15, fill = 'green', alpha = 0.5)
+p6 <- p6 + geom_histogram(aes(Error2), bins = 15, fill = 'blue', alpha = 0.5) + xlab('Errors') +ylab('')
+grid.arrange(p5, p6, nrow = 2)
+
+MSE4 = mean((test_data$log.returns-new_predictions)^2)
+
+######################################################################
+###### Predict the value of the upcoming day by using the innovation #
+###############################algorithm##############################
+######################################################################
+
+
 ######################################################################
 ###### Code chunk that finds "the optimal" number of predictors#######
 ######################################################################
