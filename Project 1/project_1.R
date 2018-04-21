@@ -14,77 +14,6 @@ setwd('C:/Users/Jacob Lindb�ck/Documents/GitHub/tidsserier/Project 1')
 ###################################################################
 ###################### Functions ##################################
 ###################################################################
-
-
-my_mean <- function(x) {return(sum(x)/length(x))}
-
-my_acf <- function(x, max.lag = 1){
-  xbar <- my_mean(x)
-  num_obs <- length(x)
-  
-  x_shift <- x-xbar
-  gamma <- rep(0,max.lag+1)
-  
-  for(i in 0:max.lag){
-    gamma[i+1] <- (1/num_obs) * sum(x_shift[(i+1):num_obs]*x_shift[1:(num_obs-i)])
-  }
-  return(gamma)
-}
-
-my_acf_matrix <- function(gamma){
-  max.lag <- length(gamma) - 1
-  Gamma = matrix(rep(0,(max.lag+1)^2), max.lag + 1, max.lag+1)
-  
-  for(i in 1:(max.lag+1)){
-    for(j in i:(max.lag+1)) {
-      Gamma[i,j] = gamma[(j-i)+1]
-      Gamma[j,i] = gamma[(j-i)+1]
-    }
-  }
-  return(Gamma)
-}
-
-
-###################################################################
-
-data <- readMat('exchangerate.mat')
-
-data <- data$data
-
-intr_value = data
-abs_returns = data[2:205,] - data[1:204]
-
-log_returns = log(data[2:205,]) - log(data[1:204])
-
-
-abs_returns = abs_returns - mean(abs_returns)
-log_returns = log_returns - mean(log_returns)
-intr_value = intr_value - mean(intr_value)
-
-exchange_data = data.frame(time = seq(2,205), absolute.return = abs_returns, log.returns = log_returns, intrinsic.value = intr_value[2:205])
-
-
-
-plot(intr_value)
-
-library('ggplot2')
-p1 <- ggplot(data = exchange_data, aes(x = time, y = abs_returns))+ geom_line() + geom_smooth(method = 'loess', se = FALSE) + theme_bw() + xlab('Time') + ylab('Absolute Returns') 
-p1 <- p1 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
-p1
-
-p2 <- ggplot(data = exchange_data, aes(x = time, y = log_returns))+ geom_line() + geom_smooth(method = 'loess',se = FALSE) + theme_bw() + xlab('Time') + ylab('Log-Returns')
-p2 <- p2 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
-p2 
-
-p3 <- ggplot(data = exchange_data, aes(x = time, y = intrinsic.value))+ geom_line() + geom_smooth(method = 'loess', se = FALSE)
-p3 <- p3 + geom_smooth(method = 'lm', se = FALSE, color = 'red')+ theme_bw() + xlab('Time') + ylab('Trade-Weighted Index') + theme(text = element_text(size=20))
-p3
-
-acf(log_returns)
-#########################
-##### Problem 2 #########
-#########################
-#Osäker på hur mycket vi ska skriva själva och hur mycket vi får använda rakt av. 
 sampMean<-function(data){
   output<-sum(data)/length(data)
 }
@@ -136,6 +65,60 @@ acfPlotter<-function(data,lagMax,shouldPlot=TRUE,plotName=""){
   }
 }
 
+my_acf_matrix <- function(gamma){
+  max.lag <- length(gamma) - 1
+  Gamma = matrix(rep(0,(max.lag+1)^2), max.lag + 1, max.lag+1)
+  
+  for(i in 1:(max.lag+1)){
+    for(j in i:(max.lag+1)) {
+      Gamma[i,j] = gamma[(j-i)+1]
+      Gamma[j,i] = gamma[(j-i)+1]
+    }
+  }
+  return(Gamma)
+}
+
+
+##################################################################
+####################### Loads and store the examined data 
+####################### in a data frame.
+##################################################################
+data <- readMat('exchangerate.mat')
+
+data <- data$data
+
+intr_value = data
+abs_returns = data[2:205,] - data[1:204]
+
+log_returns = log(data[2:205,]) - log(data[1:204])
+
+abs_returns = abs_returns - mean(abs_returns)
+log_returns = log_returns - mean(log_returns)
+intr_value = intr_value - mean(intr_value)
+
+exchange_data = data.frame(time = seq(2,205), absolute.return = abs_returns, log.returns = log_returns, intrinsic.value = intr_value[2:205])
+
+
+
+plot(intr_value)
+
+p1 <- ggplot(data = exchange_data, aes(x = time, y = abs_returns))+ geom_line() + geom_smooth(method = 'loess', se = FALSE) + theme_bw() + xlab('Time') + ylab('Absolute Returns') 
+p1 <- p1 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
+p1
+
+p2 <- ggplot(data = exchange_data, aes(x = time, y = log_returns))+ geom_line() + geom_smooth(method = 'loess',se = FALSE) + theme_bw() + xlab('Time') + ylab('Log-Returns')
+p2 <- p2 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
+p2 
+
+p3 <- ggplot(data = exchange_data, aes(x = time, y = intrinsic.value))+ geom_line() + geom_smooth(method = 'loess', se = FALSE)
+p3 <- p3 + geom_smooth(method = 'lm', se = FALSE, color = 'red')+ theme_bw() + xlab('Time') + ylab('Trade-Weighted Index') + theme(text = element_text(size=20))
+p3
+
+acf(log_returns)
+#########################
+##### Problem 2 #########
+#########################
+
 #### Now do actual task. 
 
 alpha=0.05
@@ -154,7 +137,7 @@ ljungBox(log_returns,lagMax,alpha)
 
 #Partions the series into a training data set, and a test set.
 num_samples = nrow(exchange_data)
-num_train_samples = 120
+num_train_samples = 102
 num_test_samples = num_samples - num_train_samples
 train_data = exchange_data[1:num_train_samples,]
 test_data = exchange_data[(num_train_samples+1):num_samples,]
@@ -165,11 +148,10 @@ predictors = (train_data$log.returns)[(num_train_samples-num_predictors+1):num_t
 predictors = t(matrix(predictors))
 
 #Computes the acf, and imputes the values corresponding to lag greater or equal to [num_train_samples] by zero.   
-train_acf = my_acf(train_data$log.returns, max.lag = num_train_samples-1)
+train_acf = sapply(0:num_train_samples-1, function(x){return(sampAutoCov(train_data$log.returns, lag = x))})
 train_acf = c(train_acf, rep(0, 30))
 
-Gamma = my_acf_matrix(train_acf[1:num_predictors])
-
+Gamma1 = my_acf_matrix(train_acf[1:num_predictors])
 coefficients <- matrix(rep(0,num_predictors*num_test_samples), num_predictors, num_test_samples) #Allocate memory for
                                                                                                  #coefficents
 
@@ -181,7 +163,7 @@ U = LU$U
 P = LU$P
 
 for(h in 1:num_test_samples){
-  ii = seq(h+1, h+num_predictors)
+  ii = seq(h, h+num_predictors-1)
   b = train_acf[ii]
   b1 = solve(P,b)
   b2 = forwardsolve(L,b1)
@@ -189,7 +171,7 @@ for(h in 1:num_test_samples){
   coefficients[,h] = as.matrix(b3)
 }
 
-predictions = predictors%*%coefficients
+predictions = predictors[num_predictors:1]%*%coefficients
 
 df1 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, predictions[1,]), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
 
@@ -207,36 +189,9 @@ grid.arrange(p1, p2, nrow = 2)
 MSE1 = mean((test_data$log.returns)^2) #MSE of the "naive estimate"
 MSE2 = mean((test_data$log.returns-predictions[1,])^2) #MSE of the predictive model
 
-######################################################################
-############ Computes the predictions based on previous predictions###
-######################################################################
-
-upd_predictors1 <- predictors[1,]
-coeff1 <- coefficients[(coefficients[,1] != 0),1]
-new_predictions <- rep(0,num_test_samples)
-
-for(i in 1:num_test_samples){
-  ith_prediction <- sum(coeff1*upd_predictors1)
-  new_predictions[i] = ith_prediction
-  upd_predictors1 <- c(upd_predictors1[2:num_predictors], ith_prediction)
-}
-
-df3 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, new_predictions), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
-
-#Plots the predicted log-return against time, superimposed with the predicted time series.
-p3 <- ggplot(data = df3, aes(x = time, y = log.returns, group = type)) + geom_line(aes(color = type))
-p3 <- p3 + xlab('Time') + ylab('Log-returns') + theme(legend.title=element_blank()) 
-
-df4 = data.frame(Error1 = test_data$log.returns, Error2 = (test_data$log.returns)-new_predictions)
-
-p4 <- ggplot(data = df4) + geom_histogram(aes(Error1), bins = 15, fill = 'green', alpha = 0.5)
-p4 <- p4 + geom_histogram(aes(Error2), bins = 15, fill = 'blue', alpha = 0.5) + xlab('Errors') +ylab('')
-grid.arrange(p3, p4, nrow = 2)
-
-MSE3 = mean((test_data$log.returns-new_predictions)^2)
 
 ######################################################################
-###### Computes the predictions based on previous predictions#########
+###### Computes the predictions based on previous observations#########
 ######################################################################
 upd_predictors2 <- predictors[1,]
 coeff1 <- coefficients[which(coefficients[,1] != 0),1]
@@ -245,7 +200,7 @@ new_predictions2 <- rep(0,num_test_samples)
 for(i in 1:num_test_samples){
   ith_prediction <- sum(coeff1*upd_predictors2)
   new_predictions2[i] = ith_prediction
-  upd_predictors2 <- c(upd_predictors2[2:num_predictors], test_data$log.returns[i])
+  upd_predictors2 <- c(test_data$log.returns[i], upd_predictors2[1:num_predictors-1])
 }
 
 df5 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, new_predictions2), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
@@ -260,12 +215,7 @@ p6 <- ggplot(data = df6) + geom_histogram(aes(Error1), bins = 15, fill = 'green'
 p6 <- p6 + geom_histogram(aes(Error2), bins = 15, fill = 'blue', alpha = 0.5) + xlab('Errors') +ylab('')
 grid.arrange(p5, p6, nrow = 2)
 
-MSE4 = mean((test_data$log.returns-new_predictions)^2)
-
-######################################################################
-###### Predict the value of the upcoming day by using the innovation #
-###############################algorithm##############################
-######################################################################
+MSE3 = mean((test_data$log.returns-new_predictions2)^2)
 
 
 ######################################################################
@@ -320,3 +270,5 @@ X = rnorm(204)
 ljungBox(abs(log_returns),lagMax,alpha)
 acfPlotter(abs(log_returns),lagMax)
 
+x = rnorm(102)
+acfPlotter(rnorm, 20)
