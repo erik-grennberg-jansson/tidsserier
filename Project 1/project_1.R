@@ -17,6 +17,7 @@ setwd('C:/Users/Jacob Lindbäck/Documents/GitHub/tidsserier/Project 1')
 sampMean<-function(data){
   output<-sum(data)/length(data)
 }
+
 sampVar<-function(data){
   n<-length(data)
   output<-(1/(n-1))*sum((data-sampMean(data))^2)
@@ -98,10 +99,6 @@ intr_value = intr_value - mean(intr_value)
 
 exchange_data = data.frame(time = seq(2,205), absolute.return = abs_returns, log.returns = log_returns, intrinsic.value = intr_value[2:205])
 
-
-
-plot(intr_value)
-
 p1 <- ggplot(data = exchange_data, aes(x = time, y = abs_returns))+ geom_line() + geom_smooth(method = 'loess', se = FALSE) + theme_bw() + xlab('Time') + ylab('Absolute Returns') 
 p1 <- p1 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
 p1
@@ -144,14 +141,14 @@ test_data = exchange_data[(num_train_samples+1):num_samples,]
 
 #Extracts the last [num_predictors] train_data points and store them in a row matrix
 num_predictors = 20
-predictors = (train_data$log.returns)[(num_train_samples-num_predictors+1):num_train_samples]
+predictors = (train_data$log.returns)[num_train_samples:(num_train_samples-num_predictors+1)]
 predictors = t(matrix(predictors))
 
 #Computes the acf, and imputes the values corresponding to lag greater or equal to [num_train_samples] by zero.   
-train_acf = sapply(0:num_train_samples-1, function(x){return(sampAutoCov(train_data$log.returns, lag = x))})
+train_acf = sapply(0:(num_train_samples-1), function(x){return(sampAutoCov(train_data$log.returns, lag = x))})
 train_acf = c(train_acf, rep(0, 30))
 
-Gamma1 = my_acf_matrix(train_acf[1:num_predictors])
+Gamma = my_acf_matrix(train_acf[1:num_predictors])
 coefficients <- matrix(rep(0,num_predictors*num_test_samples), num_predictors, num_test_samples) #Allocate memory for
                                                                                                  #coefficents
 
@@ -163,7 +160,7 @@ U = LU$U
 P = LU$P
 
 for(h in 1:num_test_samples){
-  ii = seq(h, h+num_predictors-1)
+  ii = seq(h+1, h+num_predictors)
   b = train_acf[ii]
   b1 = solve(P,b)
   b2 = forwardsolve(L,b1)
@@ -171,7 +168,7 @@ for(h in 1:num_test_samples){
   coefficients[,h] = as.matrix(b3)
 }
 
-predictions = predictors[num_predictors:1]%*%coefficients
+predictions = predictors%*%coefficients
 
 df1 = data.frame(time = rep(seq(num_train_samples+1,num_samples),2), log.returns = c(test_data$log.returns, predictions[1,]), type = c(rep('True', num_test_samples), rep('Predictions', num_test_samples)))
 
@@ -191,7 +188,8 @@ MSE2 = mean((test_data$log.returns-predictions[1,])^2) #MSE of the predictive mo
 
 
 ######################################################################
-###### Computes the predictions based on previous observations#########
+###### Computes the predictions based on previous observations########
+############################ (Task 3) ################################
 ######################################################################
 upd_predictors2 <- predictors[1,]
 coeff1 <- coefficients[which(coefficients[,1] != 0),1]
@@ -216,47 +214,6 @@ p6 <- p6 + geom_histogram(aes(Error2), bins = 15, fill = 'blue', alpha = 0.5) + 
 grid.arrange(p5, p6, nrow = 2)
 
 MSE3 = mean((test_data$log.returns-new_predictions2)^2)
-
-
-######################################################################
-###### Code chunk that finds "the optimal" number of predictors#######
-######################################################################
-
-max_num_predictors <- 50
-MSE_list = rep(0,max_num_predictors)
-for(num_predictors in 1:max_num_predictors){
-  predictors = (train_data$log.returns)[(num_train_samples-num_predictors+1):num_train_samples]
-  predictors = t(matrix(predictors))
-
-  Gamma = my_acf_matrix(train_acf[1:num_predictors])
-  coefficients <- matrix(rep(0,num_predictors*num_test_samples), num_predictors, num_test_samples)
-  
-  LU = lu(Gamma)
-  LU = expand(LU)
-  
-  L = LU$L
-  U = LU$U
-  P = LU$P
-  
-  for(h in 1:num_test_samples){
-    ii = seq(h+1, h+num_predictors)
-    b = train_acf[ii]
-    b1 = solve(P,b)
-    b2 = forwardsolve(L,b1)
-    b3 = backsolve(U, b2)
-    coefficients[,h] = as.matrix(b3)
-  }
-  
-  predictions = predictors%*%coefficients
-
-  MSE_list[num_predictors] = mean((test_data$log.returns-predictions[1,])^2)
-}
-
-df5 = data.frame(MSE = MSE_list, num.predictors = 1:50)
-p5 <- ggplot(data = df5, aes(x = num.predictors, y = MSE)) + geom_point() + geom_hline(aes(yintercept = MSE1))
-p5 <- p5 + xlab('Number of predictors')
-p5
-
 
 #########################
 ##### Problem 4 #########
