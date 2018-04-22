@@ -10,7 +10,7 @@ library('gridExtra')
 library('Matrix')
 library('ggplot2')
 
-setwd('C:/Users/Jacob Lindbäck/Documents/GitHub/tidsserier/Project 1')
+setwd('C:/Users/Jacob Lindb?ck/Documents/GitHub/tidsserier/Project 1')
 ###################################################################
 ###################### Functions ##################################
 ###################################################################
@@ -218,14 +218,18 @@ MSE3 = mean((test_data$log.returns-new_predictions2)^2)
 #########################
 ##### Problem 4 #########
 #########################
-qqnorm(exchange_data$log.returns)
-qqline(exchange_data$log.returns)
+qqnorm(log_returns, pch = 1, frame = FALSE,main="")
+qqline(log_returns, col = "steelblue", lwd = 2)
 
-X = rnorm(204)
+X<-rnorm(204)
+qqnorm(X, pch = 1, frame = FALSE,main="")
+qqline(X, col = "steelblue", lwd = 2)
 
 #To do: abs(log.return, Box Ljung)
-ljungBox(abs(log_returns),lagMax,alpha)
-acfPlotter(abs(log_returns),lagMax)
+abslog_returns<-abs(log_returns)
+abslog_returns<-abslog_returns-sampMean(abslog_returns);
+ljungBox(abslog_returns,lag_max,alpha)
+acfPlotter(abslog_returns,lag_max)
 
 x = rnorm(102)
 acfPlotter(rnorm, 20)
