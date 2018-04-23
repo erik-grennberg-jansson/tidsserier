@@ -1,6 +1,6 @@
 
 #Install required packages
-install.packages('R.matlab')
+install.packages('R.matlab') 
 install.package('ggplot2')
 install.packages('Matrix')
 
@@ -15,11 +15,11 @@ setwd('C:/Users/Jacob Lindb?ck/Documents/GitHub/tidsserier/Project 1')
 ###################### Functions ##################################
 ###################################################################
 sampMean<-function(data){
-  output<-sum(data)/length(data)
+  output<-sum(data)/length(data) #by formula in book
 }
 
 sampVar<-function(data){
-  n<-length(data)
+  n<-length(data) #by well known formula
   output<-(1/(n-1))*sum((data-sampMean(data))^2)
 }
 
@@ -29,37 +29,37 @@ sampAutoCov<-function(data,lag){
   stDv<-sqrt(sampVar(data))
   lag<-abs(lag)
   output<-0
-  for(t in 1:(n-lag) ){
+  for(t in 1:(n-lag) ){ #by summation formula in book
     output<-output+(data[t+lag]-mu)*(data[t]-mu)   
   }
-  output<-output/n
+  output<-output/n 
 }
 
 sampAutoCorr<-function(data,lag){
-  output<-sampAutoCov(data,lag)/sampAutoCov(data,0)
+  output<-sampAutoCov(data,lag)/sampAutoCov(data,0) #by formula gamm(t)/gamma(0)
 }
 
 
 ljungBox<-function(data,lagMax,alpha){
-  n<-length(data)
+  n<-length(data) 
   testStat<-0
   lagMax<-abs(lagMax) #unsure of this, but needed for summation. 
   for(j in 1:lagMax){
-    testStat<-testStat+sampAutoCorr(data,j)^2/(n-j)
+    testStat<-testStat+sampAutoCorr(data,j)^2/(n-j) #build sum
   }
-  testStat<-testStat*n*(n+2)
-  pval<-pchisq(testStat,df=lagMax,lower.tail = FALSE)
-  res<-testStat>qchisq(1-alpha,df=lagMax)
-  output<-data.frame(testStat,pval,res)
-  print(output)
+  testStat<-testStat*n*(n+2) #final teststat
+  pval<-pchisq(testStat,df=lagMax,lower.tail = FALSE) #test stat is chi2
+  res<-testStat>qchisq(1-alpha,df=lagMax) #bool of reject/don't reject
+  output<-data.frame(testStat,pval,res) #order output
+  print(output) #print nice output
 }
-acfPlotter<-function(data,lagMax,shouldPlot=TRUE,plotName=""){
-  lag<-seq(0,lagMax)
+acfPlotter<-function(data,lagMax,shouldPlot=TRUE,plotName=""){ #to plot lag
+  lag<-seq(0,lagMax) #preallocate space
   subFunc<-function(lag){
     output<-sampAutoCorr(data,lag)
   }
-  acf<-sapply(lag,subFunc)
-  if(shouldPlot){
+  acf<-sapply(lag,subFunc) #get vector of acf
+  if(shouldPlot){ #plot it using ggplot2
     toPlotDf<-data.frame(lag,acf)
     q<-ggplot(data=toPlotDf,aes(x=lag,y=acf))+geom_hline(aes(yintercept=0))+geom_segment(aes(xend=lag,yend=0))+ggtitle(plotName)
     q
@@ -84,7 +84,7 @@ my_acf_matrix <- function(gamma){
 ####################### Loads and store the examined data 
 ####################### in a data frame.
 ##################################################################
-data <- readMat('exchangerate.mat')
+data <- readMat('exchangerate.mat') #read in data
 
 data <- data$data
 
