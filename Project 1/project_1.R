@@ -89,16 +89,16 @@ data <- readMat('exchangerate.mat') #read in data
 data <- data$data
 
 intr_value = data
-abs_returns = data[2:205,] - data[1:204]
+abs_returns = data[2:205,] - data[1:204] #form absrets
 
-log_returns = log(data[2:205,]) - log(data[1:204])
+log_returns = log(data[2:205,]) - log(data[1:204]) #form logrets
 
-abs_returns = abs_returns - mean(abs_returns)
-log_returns = log_returns - mean(log_returns)
-intr_value = intr_value - mean(intr_value)
+abs_returns = abs_returns - mean(abs_returns) #mean correct
+log_returns = log_returns - mean(log_returns) #mean correct
+intr_value = intr_value - mean(intr_value) #mean correct. 
 
 exchange_data = data.frame(time = seq(2,205), absolute.return = abs_returns, log.returns = log_returns, intrinsic.value = intr_value[2:205])
-
+#plot data nicley using ggplot2
 p1 <- ggplot(data = exchange_data, aes(x = time, y = abs_returns))+ geom_line() + geom_smooth(method = 'loess', se = FALSE) + theme_bw() + xlab('Time') + ylab('Absolute Returns') 
 p1 <- p1 + geom_smooth(method = 'lm', se = FALSE, color = 'Red') + theme(text = element_text(size=20))
 p1
@@ -118,13 +118,13 @@ acf(log_returns)
 
 #### Now do actual task. 
 
-alpha=0.05
-lag_max=20
-acfPlotter(intr_value,lag_max)
+alpha=0.05 #signif. level
+lag_max=20 #maximal lag
+acfPlotter(intr_value,lag_max) #plot acfs
 acfPlotter(abs_returns,lag_max)
 acfPlotter(log_returns,lag_max)
-ljungBox(intr_value,lagMax,alpha) #vad är kutym att man säger att p-värdet är mindre än? 
-ljungBox(abs_returns,lagMax,alpha)
+ljungBox(intr_value,lagMax,alpha) 
+ljungBox(abs_returns,lagMax,alpha) # run all ljung box
 ljungBox(log_returns,lagMax,alpha)
 
 
@@ -218,18 +218,16 @@ MSE3 = mean((test_data$log.returns-new_predictions2)^2)
 #########################
 ##### Problem 4 #########
 #########################
-qqnorm(log_returns, pch = 1, frame = FALSE,main="")
+qqnorm(log_returns, pch = 1, frame = FALSE,main="") #use qqnormline command to get qqplot
 qqline(log_returns, col = "steelblue", lwd = 2)
 
 X<-rnorm(204)
-qqnorm(X, pch = 1, frame = FALSE,main="")
-qqline(X, col = "steelblue", lwd = 2)
+qqnorm(X, pch = 1, frame = FALSE,main="") #do same for pseudoranom normal data
+qqline(X, col = "steelblue", lwd = 2) 
 
 #To do: abs(log.return, Box Ljung)
-abslog_returns<-abs(log_returns)
-abslog_returns<-abslog_returns-sampMean(abslog_returns);
+abslog_returns<-abs(log_returns)  #form abs returns
+abslog_returns<-abslog_returns-sampMean(abslog_returns); #mean correct
 ljungBox(abslog_returns,lag_max,alpha)
-acfPlotter(abslog_returns,lag_max)
+acfPlotter(abslog_returns,lag_max) #plot acf
 
-x = rnorm(102)
-acfPlotter(rnorm, 20)
