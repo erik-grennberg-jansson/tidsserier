@@ -8,24 +8,25 @@ parcorr(returns,20);
 [~,pVal]=lbqtest(returns,20);
 %% uppgift 2
 numberOfObservations=length(returns);
-bicMatrix=zeros(10,10); %matrix for bics preallocation
 loglikliMatrix = zeros(10,10); % Initialize
-pqMatrix = ones(10,10); %to save number of paramaters
+pqMatrix = zeros(10,10); %to save number of paramaters
 for q=1:10
   for p=1:10
     try
       mod = arima(p,0,q); %model struct
-      [~,~,logL] = estimate(mod,returns,'Display','off','Constant0',0); %fits model
+      [~,~,logL,~] = estimate(mod,returns,'Display','off','Constant0',0); %fits model
       loglikliMatrix(p,q) = logL; %save in loglik matrix
-      pqMatrix(p,q) = p+q; %save number of parameters
+      pqMatrix(p,q) = 1+p+q; %save number of parameters
     catch
       disp("warning")
       loglikliMatrix(p,q)=NaN;
+      pqMatrix(p,q)=NaN;
     end
   end
 end
-[~,bic] = aicbic(reshape(loglikliMatrix,100,1),reshape(pqMatrix,100,1),numberOfObservations);
+
 %%
+[~,bic] = aicbic(reshape(loglikliMatrix,100,1),reshape(pqMatrix,100,1),numberOfObservations);
 [value,index]=min(bic);
-ind2sub([10,10],bic)
+[i,j]=ind2sub([10 10],34)
     
