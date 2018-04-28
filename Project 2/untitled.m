@@ -74,3 +74,8 @@ garchOptEval=estimate(garchOpt,residuals,'Display','off');
 [resResiduls,~]=infer(garchOptEval,residuals);
 %todo diagnostic check
 %det ser helt miffat ut.
+
+
+%%
+r=normrnd(0,1,1000,1);
+autocorr(r,20)

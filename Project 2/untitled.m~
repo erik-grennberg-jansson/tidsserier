@@ -70,7 +70,12 @@ end
 [pOpt,qOpt]=ind2sub(maxNoPar,index);
 %%
 garchOpt=garch(pOpt,qOpt);
-garchOptEval=estimate(garchOpt,residuals);
-[residualResidual,~]=infer(armaEstOpt,returns);
+garchOptEval=estimate(garchOpt,residuals,'Display','off');
+[resResiduls,~]=infer(garchOptEval,residuals);
 %todo diagnostic check
+%det ser helt miffat ut.
 
+
+%%
+r=normrnd(0,1,1000,1);
+au
