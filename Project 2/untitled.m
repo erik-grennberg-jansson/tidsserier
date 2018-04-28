@@ -31,9 +31,9 @@ end
 [value,index]=min(bic);
 [pOpt,qOpt]=ind2sub([ maxNoPar],index);
 %% TASK 3
-modOpt=arima(pOpt,0,qOpt);
-modEstOpt=estimate(modOpt,returns,'Display','off'); %osäker op detta
-[residuals,condVar]=infer(modEstOpt,returns); %maybe we shall standardize the residuals? 
+armaOpt=arima(pOpt,0,qOpt);
+armaEstOpt=estimate(armaOpt,returns,'Display','off'); %osäker op detta
+[residuals,condVar]=infer(armaEstOpt,returns); %maybe we shall standardize the residuals? 
 %
 figure(1);clf;
 plot(residuals);
@@ -67,4 +67,10 @@ for q=1:maxNoPar
 end
 [~,bic] = aicbic(reshape(loglikliMatrix,maxNoPar^2,1),reshape(pqMatrix,maxNoPar^2,1),numberOfObservations);
 [value,index]=min(bic);
-[pOpt,qOpt]=ind2sub([ maxNoPar],index);
+[pOpt,qOpt]=ind2sub(maxNoPar,index);
+%%
+garchOpt=garch(pOpt,qOpt);
+garchOptEval=estimate(garchOpt,residuals,'Display','off');
+[resResiduls,~]=infer(garchOptEval,residuals);
+%todo diagnostic check
+%det ser helt miffat ut.
