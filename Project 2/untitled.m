@@ -26,7 +26,7 @@ for q=1:maxNoPar
   end
 end
 
-%%
+
 [~,bic] = aicbic(reshape(loglikliMatrix,maxNoPar^2,1),reshape(pqMatrix,maxNoPar^2,1),numberOfObservations);
 [value,index]=min(bic);
 [pOpt,qOpt]=ind2sub([ maxNoPar],index);
@@ -47,15 +47,15 @@ figure(2);clf;
 autocorr(residuals.^2,20);
 %we must allow for hetroscacity and whale-tails! 
 %% TASK4
-maxNoPar=5;
-numberOfObservations=length(returns);
+maxNoPar=10;
+numberOfObservations=length(residuals);
 loglikliMatrix = zeros(maxNoPar); % Initialize
 pqMatrix = zeros(maxNoPar); %to save number of paramaters
 for q=1:maxNoPar
   for p=1:maxNoPar
     try
       mod = garch(p,q); %model struct
-      [fit,~,logL,~] = estimate(mod,returns,'Display','off','); %fits model
+      [fit,~,logL,~] = estimate(mod,residuals,'Display','off');  %fits model
       loglikliMatrix(p,q) = logL; %save in loglik matrix
       pqMatrix(p,q) = 1+p+q; %save number of parameters
     catch
@@ -65,4 +65,6 @@ for q=1:maxNoPar
     end
   end
 end
-
+[~,bic] = aicbic(reshape(loglikliMatrix,maxNoPar^2,1),reshape(pqMatrix,maxNoPar^2,1),numberOfObservations);
+[value,index]=min(bic);
+[pOpt,qOpt]=ind2sub([ maxNoPar],index);
