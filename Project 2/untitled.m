@@ -58,7 +58,7 @@ for q=1:num_params
   for p=1:num_params
     try
       model = garch(p,q); %model struct
-      [~,~,logL,~] = estimate(mod,residuals,'Display','off');  %fits model
+      [~,~,logL,~] = estimate(model,residuals,'Display','off');  %fits model
       garch_loglikelihood(p,q) = logL; %save in loglik matrix
       pqMatrix(p,q) = 1+p+q; %save number of parameters
     catch
@@ -85,3 +85,13 @@ autocorr(residuals./(sqrt(var)))
 %%
 r=normrnd(0,1,1000,1);
 autocorr(r,20)
+
+
+%%
+for df=1:100
+    clf
+    pd = makedist('tLocationScale','nu',df);
+    qqplot(residuals./(sqrt(var)), pd)
+    pause(1)
+    df
+end
