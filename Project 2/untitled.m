@@ -28,7 +28,7 @@ for q=1:num_params
 end
 
 
-[~,bic] = aicbic(reshape(loglikelihood,num_params^2,1),reshape(pqMatrix,num_params^2,1),num_obs);
+[aic,bic] = aicbic(reshape(loglikelihood,num_params^2,1),reshape(pqMatrix,num_params^2,1),num_obs);
 [~,index]=min(bic);
 [pOpt,qOpt]=ind2sub(num_params,index);
 %% Task 3
