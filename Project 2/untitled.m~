@@ -107,64 +107,64 @@ disp(index); % kolla detta.
 %% Diagnostics.
 garchOpt=garch(pOptGarch,qOptGarch); %cfeate optimal garch model with best parameters and dist from before
 garchOpt.Distribution=struct('Name','t','DoF',7);
-garchOptEval=estimate(garchOpt,residuals,'Display','off'); %estimate parameters. 
+garchOptEval=estimate(garchOpt,residuals,'Display','off');
 [var,~]=infer(garchOptEval,residuals); %Computes to conditional variance
 
-figure(1); clf; %diagnostics. 
+figure(1); clf;
 subplot(1,3,1)
 plot(residuals./(sqrt(var)))
 subplot(1,3,2)
-qqplot(residuals./(sqrt(var)),makedist('tLocationScale','nu',7)) %QQ plot for t. 
+qqplot(residuals./(sqrt(var)),makedist('tLocationScale','nu',7))
 subplot(1,3,3)
 autocorr(residuals./(sqrt(var)),20)
 %% Uppgift 6
 clc; clf;
-varProcess=garch(1,1); %set variance proceess
-varProcess.Distribution=struct('Name','t','DoF',7); %set dist of it
-armaGarch=arima(2,0,2); %create arma process
-armaGarch.Variance=varProcess; %set it to be driven by garch model
-armaGarch.Constant=0; %set constant to zero. 
-armaGarchEst=estimate(armaGarch,returns); %estimate parameters. 
+varProcess=garch(1,1);
+varProcess.Distribution=struct('Name','t','DoF',7);
+armaGarch=arima(2,0,2);
+armaGarch.Variance=varProcess;
+armaGarch.Constant=0;
+armaGarchEst=estimate(armaGarch,returns);
 
 
 
 %% Diagnostics
 figure(1); clf;
 [residualsAG,varAG]=infer(armaGarchEst,returns);
-residualsAG=residualsAG./sqrt(varAG); %divide with variance and then diagnostics
+residualsAG=residualsAG./sqrt(varAG);
 subplot(1,3,1)
-plot(residualsAG); %diagnostics. 
+plot(residualsAG);
 subplot(1,3,2)
 qqplot(residualsAG,makedist('tLocationScale','nu',7))
 subplot(1,3,3)
 autocorr(residualsAG,20)
 
-[~,pvalAG]=lbqtest(residualsAG,20); %ljung box
+[~,pvalAG]=lbqtest(residualsAG,20);
 figure(2); clf
-autocorr(residualsAG.^2,20); %to check for higher order dep.
+autocorr(residualsAG.^2,20);
 %%  Predicitive model
 
 
-trainingData=returns(1:floor(0.8*length(returns))); %partition into training data and else. 
+trainingData=returns(1:floor(0.8*length(returns)));
 testData=returns(floor(0.8*length(returns))+1:end);
 
 
-predModel=estimate(armaGarch,trainingData); %estimate pred model paramters. 
+predModel=estimate(armaGarch,trainingData);
 
 
-oneDay=zeros(length(testData),1); %preallocate, 
+oneDay=zeros(length(testData),1);
 upper=zeros(length(testData),1);
 lower=zeros(length(testData),1);
 for i=1:length(testData)
-  inputData=returns(1:floor(0.8*length(returns))+i-1); %set input data. 
-  [Y,YMSE]=forecast(predModel,1,'Y0',inputData); %caluculate one day forcasts.
-  oneDay(i)=Y; %set forecast
+  inputData=returns(1:floor(0.8*length(returns))+i-1);
+  [Y,YMSE]=forecast(predModel,1,'Y0',inputData);
+  oneDay(i)=Y;
   upper(i)=Y+2*sqrt(YMSE);
-  lower(i)=Y-2*sqrt(YMSE); %set lower and upper. 
+  lower(i)=Y-2*sqrt(YMSE);
 end
 
 clf;
-plot(oneDay,'r'); hold on; plot(testData,'k'); plot(upper,'--r'); plot(lower,'--r');  %plot nicley! 
+plot(oneDay,'r'); hold on; plot(testData,'k'); plot(upper,'--r'); plot(lower,'--r'); 
 L = legend('Predictions','Test Data', 'Predictions $\pm 2\sqrt{MSE}$');
 set(L,'Interpreter','Latex','fontsize',20)
 
